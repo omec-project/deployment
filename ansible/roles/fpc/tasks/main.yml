@@ -1,0 +1,62 @@
+---
+ - name: Git clone for FPC
+   git:
+       repo: "{{ ODL_REPO }}" 
+       dest: "{{ ODL_REPO_DIR }}"
+       key_file: "/home/c3po_ngic.key"
+       accept_hostkey: yes
+       version: "{{ ODL_COMMIT_ID }}"
+       update: no
+
+ - name: copying build script
+   copy:
+      src: fpc_install_wo_menu.sh
+      dest: "{{ ODL_REPO_DIR }}/"
+      owner: "root"
+      mode: "0755"
+ - name: Installing lib and JDK packages
+   apt: 
+      name: "{{ item }}"
+      state: present
+   with_items:
+     - curl 
+     - build-essential
+     - unzip
+     - libpcap0.8-dev
+     - gcc
+     - libjson0-dev
+     - make
+     - libc6
+     - libc6-dev
+     - g++-multilib 
+     - libzmq3-dev 
+     - libcurl4-openssl-dev
+     - openjdk-8-jdk
+     - python-pip
+     - linux-headers-{{ ansible_kernel }}
+ - name: installing pyzmq package
+   pip: 
+      name: "{{ item }}"
+      executable: pip2
+   with_items: 
+      - pyzmq 
+      - netaddr
+      - configparser
+ - name: Run the installation script
+   shell: cd {{ ODL_REPO_DIR }} && ./fpc_install_wo_menu.sh  |tee {{ FPC_LOG }} 
+   args:
+      executable: /bin/bash
+
+ - name: copying start FPC script 
+   template: 
+      src: new_run.j2 
+      dest: "{{ ODL_REPO_DIR }}/new_run.sh"
+      owner: root 
+      mode: 0755 
+
+# - name: starting FPC service
+#   shell: cd {{ ODL_REPO_DIR }} && ./new_run.sh &
+#   args: 
+#      executable: /bin/bash
+
+

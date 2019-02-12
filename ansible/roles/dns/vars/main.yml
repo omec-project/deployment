@@ -1,0 +1,4 @@
+---
+# Variables for Bind setup 
+# DNS_TYPE: allinone/distributed"
+ ALLINONE_HOST: "{{ ansible_hostname }}"

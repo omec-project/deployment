@@ -1,0 +1,117 @@
+---
+ - name: Git clone for C3PO
+   git:
+       repo: "{{ C3PO_REPO }}"
+       dest: "{{ C3PO_REPO_DIR }}"
+       key_file: "/home/c3po_ngic.key"
+       accept_hostkey: yes
+       version: "{{ C3PO_COMMIT_ID }}"
+       update: no
+
+ - name: Add repo for java 
+   apt_repository:
+     repo: ppa:webupd8team/java
+     state: present
+ - name: Accept Java 8 License
+   become: yes
+   debconf: 
+      name: 'oracle-java8-installer' 
+      question: 'shared/accepted-oracle-license-v1-1' 
+      value: 'true' 
+      vtype: 'select'
+ - name: installing Orcle packages
+   apt: 
+     name: oracle-java8-installer 
+     state: present  
+
+ - name: Add repo for Cassandra
+   apt_repository: 
+     repo: deb http://www.apache.org/dist/cassandra/debian 21x main
+     state: present
+
+ - name: add key for cassandra repo
+   apt_key: 
+     url: https://www.apache.org/dist/cassandra/KEYS
+     state: present
+ 
+ - name: apt update 
+   apt: 
+     update_cache=yes
+
+ - name: Installing cassandra packages
+   apt: 
+     name: cassandra
+     state: present
+
+ - name: Installing python-pip packages
+   apt:
+     name: "{{ item }}"
+     state: present
+   with_items: 
+     - python3-pip 
+     - python-pip
+
+ - name: pip install cassandra-driver
+   pip: 
+     name: cassandra-driver
+     executable: pip2 
+
+ - name: check db ip as localhost
+   shell: "cat /etc/cassandra/cassandra.yaml |grep 127.0.0.1"
+   ignore_errors: true
+   register: check_db_ip
+
+ - name: Stopping cassandra sevice
+   service: 
+     name: cassandra
+     state: stopped 
+   register: _svc_cassandra
+   when: '"127.0.0.1" in check_db_ip.stdout'
+
+ - name: cleanup the log files
+   shell: "/bin/rm -rf {{ item }}"
+   args: 
+     warn: false
+   with_items: 
+      - /var/lib/cassandra/data/system/*
+      - /var/lib/cassandra/commitlog/*
+      - /var/lib/cassandra/data/system_traces/*
+      - /var/lib/cassandra/saved_caches/*
+   when: '"127.0.0.1"  in check_db_ip.stdout' 
+
+ - name:  copying  cassandra configuration files
+   template: 
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      backup: yes
+   with_items:
+      - { src: 'cassandra-rackdc.j2', dest: '/etc/cassandra/cassandra-rackdc.properties' }
+      - { src: 'cassandra.j2', dest: '/etc/cassandra/cassandra.yaml' }
+      - { src: 'data_provisioning_users.j2', dest: '{{ C3PO_REPO_DIR }}/db_docs/data_provisioning_users.py' }
+ - name: Start cassandra service 
+   service: 
+     name: cassandra
+     state: started
+ 
+# - name: check the nodetool status.
+#   command: "/usr/bin/nodetool status"
+#   register: result
+# - debug:
+#      var: result
+ - name: wait service cassandra start 
+   wait_for:
+      host: "{{ DB_DB_IP }}"
+      port: 7000
+      delay: 45
+      timeout: 90
+  
+ - name: Create the HSS Database Schema in Cassandra 
+   shell: "cd {{ C3PO_REPO_DIR }} && cqlsh --file hss/db/oai_db.cql {{ DB_DB_IP }}"
+   args: 
+      executable: /bin/bash 
+  
+ - name: creation of database 
+   shell: cd {{ C3PO_REPO_DIR }}/db_docs && python data_provisioning_users.py
+   args:
+      executable: /bin/bash
+

@@ -1,0 +1,10 @@
+---
+ - name: cleaning target Hosts
+   hosts: all
+   become: yes
+   become_method: sudo
+   vars_files:
+       - "../group_vars/prephost.yml"
+       - "../group_vars/repo.yml"
+   roles:
+       - cleanup

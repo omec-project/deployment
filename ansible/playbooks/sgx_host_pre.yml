@@ -1,0 +1,12 @@
+---
+ - name: SGX-HOST-PREPARE setup
+   hosts: all
+   gather_facts: true
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/prephost.yml"
+   roles:
+     - sgx_host_pre
+   tags:
+     - sgx_host_pre

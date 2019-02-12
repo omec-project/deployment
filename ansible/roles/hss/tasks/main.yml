@@ -1,0 +1,38 @@
+---
+ - name: Git clone for C3PO
+   git:
+       repo: "{{ C3PO_REPO }}"
+       dest: "{{ C3PO_REPO_DIR }}"
+       key_file: "/home/c3po_ngic.key"
+       accept_hostkey: yes
+       version: "{{ C3PO_COMMIT_ID }}"
+       update: no
+
+ - name: copying build script
+   copy:
+      src: "{{ item }}"
+      dest: "{{ C3PO_REPO_DIR }}/"
+      owner: "root"
+      mode: "0755"
+   with_items: 
+      - ansible_c3po_install.sh 
+      - Makefile
+
+ - name: Run the installation script
+   shell: cd {{ C3PO_REPO_DIR }} && ./ansible_c3po_install.sh |tee {{ HSS_LOG }}
+   args:
+      executable: /bin/bash
+ 
+ - name:  copying  hss configuration files
+   template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      backup: yes
+   with_items:
+      - { src: 'hss-conf.j2', dest: '/opt/c3po/hss/conf/hss.conf' }
+      - { src: 'hss-json.j2', dest: '/opt/c3po/hss/conf/hss.json' }
+ 
+ - name: create cerificate
+   shell: "cd {{ C3PO_REPO_DIR }}/hss/conf && ../bin/make_certs.sh hss {{ ORIGIN }}"
+   args:
+      executable: /bin/bash

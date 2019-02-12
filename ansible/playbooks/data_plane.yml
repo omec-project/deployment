@@ -1,0 +1,131 @@
+---
+ - name: SGX-DEALER-IN setup
+   hosts: sgx-dealer-in
+   gather_facts: true
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/prephost.yml"
+     - "../group_vars/sgx.yml"
+     - "../group_vars/repo.yml"
+   roles:
+     - sgx-dealer-in
+   tags:
+     - sgx-dealer-in
+ - name: SGX-DEALER-OUT setup
+   hosts: sgx-dealer-out
+   gather_facts: true
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/prephost.yml"
+     - "../group_vars/sgx.yml"
+     - "../group_vars/repo.yml"
+   roles:
+     - sgx-dealer-out
+   tags:
+     - sgx-dealer-out
+ - name: SGX-KMS setup
+   hosts: sgx-kms
+   gather_facts: true
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/prephost.yml"
+     - "../group_vars/sgx.yml"
+     - "../group_vars/repo.yml"
+   roles:
+     - sgx-kms
+   tags:
+     - sgx-kms
+ - name: SGX-ROUTER setup
+   hosts: sgx-router
+   gather_facts: true
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/prephost.yml"
+     - "../group_vars/sgx.yml"
+     - "../group_vars/repo.yml"
+   roles:
+     - sgx-router
+   tags:
+     - sgx-router
+ - name: Installation and configuration of DNS
+   hosts: dns
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/prephost.yml"
+     - "../group_vars/c3po.yml"
+   roles:
+     - dns
+   tags:
+     - dns
+ - name: Installation and configuration of CTF
+   hosts: ctf
+   vars_files:
+     - "../group_vars/prephost.yml"
+     - "../group_vars/c3po.yml"
+     - "../group_vars/sgx.yml"
+     - "../group_vars/repo.yml"
+   become: yes
+   become_method: sudo
+   roles:
+     - ctf
+   tags:
+     - ctf
+ - name: Installation and configuration of CDF
+   hosts: cdf
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/c3po.yml"
+     - "../group_vars/prephost.yml"
+     - "../group_vars/repo.yml"
+   roles:
+     - cdf
+   tags:
+     - cdf
+
+ - name: SPGWU setup
+   hosts: spgwu
+   gather_facts: true
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/sgx.yml"
+     - "../group_vars/repo.yml"
+     - "../group_vars/c3po.yml"
+   roles:
+     - spgwu
+   tags:
+     - spgwu
+
+ - name: SGWU Setup
+   hosts: sgwu
+   become: yes
+   become_method: sudo
+   gather_facts: true
+   vars_files:
+     - "../group_vars/sgx.yml"
+     - "../group_vars/repo.yml"
+     - "../group_vars/c3po.yml"
+   roles:
+     - sgwu
+   tags:
+     - sgwu
+
+ - name: PGWU Setup
+   hosts: pgwu
+   become: yes
+   become_method: sudo
+   gather_facts: true
+   vars_files:
+      - "../group_vars/repo.yml"
+      - "../group_vars/sgx.yml"
+      - "../group_vars/c3po.yml"
+   roles:
+     - pgwu
+   tags:
+     - pgwu

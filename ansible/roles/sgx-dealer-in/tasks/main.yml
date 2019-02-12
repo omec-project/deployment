@@ -1,0 +1,57 @@
+---
+ - name: Create sgx-dl-in directory  
+   file: 
+      path: "/opt/sgx-dl-in"
+      state: directory 
+      mode: 0755
+
+ - name: Create deps temp directory
+   file: 
+      path: "{{ DEPS_DIR }}" 
+      state: directory 
+      mode: 0755
+   register: dir_state
+
+ - name: Git clone c3po repository 
+   git: 
+      repo: "{{ SGX_REPO }}"
+      dest: "{{ REPO_DIR }}"
+      key_file: "/home/c3po_ngic.key"
+      accept_hostkey: yes
+      version: "{{ SGX_COMMIT_ID }}"
+      update: no 
+
+ - name: Copying scripts and config template
+   template: 
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      mode: "{{ item.mode }}"
+   with_items: 
+      - { src: 'deps_install.sh', dest: '{{ REPO_DIR }}/sgxcdr/dealer', mode: '0755' }
+      - { src: 'dealer_install.sh', dest: '{{ REPO_DIR }}/sgxcdr/dealer', mode: '0755' }
+      - { src: 'dealer_json.j2', dest: '{{ REPO_DIR }}/sgxcdr/dealer/conf/dealer.json', mode: '0644'  }
+  
+ 
+ - name: Downloading all dependancy 
+   shell: "cd {{ REPO_DIR }}/sgxcdr/dealer && ./deps_install.sh |tee /var/log/sgx_dealer_deps_install.log"
+   args: 
+      executable: /bin/bash
+   when: dir_state.changed
+
+
+ - name: Build dealer
+   shell: "cd {{ REPO_DIR }}/sgxcdr/dealer && ./dealer_install.sh |tee /var/log/sgx_dealer_in_install.log"
+   args: 
+      executable: /bin/bash 
+
+ - name: Generating dealer-in hash ( mrenclave and mrsigner ) 
+   shell: cd {{ REPO_DIR }}/sgxcdr/dealer  && ./dealer -j conf/dealer.json -x | sed -n 's/MR.* ://p'
+   register: hash_keys
+ - set_fact: 
+      DLIN_MRENCLAVE: "{{ hash_keys.stdout_lines[0] }}"
+      DLIN_MRSIGNER: "{{ hash_keys.stdout_lines[1] }}"
+ - debug: 
+      msg: "sgx-dl-in: MRENCLAVE-{{ DLIN_MRENCLAVE }} MRSIGNER-{{ DLIN_MRSIGNER }}"
+
+# - name: start dlear-in
+#   shell: cd {{ REPO_DIR }}/sgxcdr/dealer && ./dealer -m IN   

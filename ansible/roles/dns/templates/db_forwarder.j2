@@ -1,0 +1,47 @@
+{% if DNS_TYPE == "distributed" %}
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     {{ HOST_NAME }}.{{ DOMAIN }}. root.{{ HOST_NAME }}.{{ DOMAIN }}. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      {{ HOST_NAME }}.{{ DOMAIN }}.
+@       IN      A       127.0.0.1
+@       IN      AAAA    ::1
+
+{{ HOST_NAME }}        IN      A       {{ DNS_DDNS_IP }}
+ctf        IN      A       {{ CTF_CTF_RF_IP }}
+cdf        IN      A       {{ CDF_CDF_RF_IP }}
+
+_diameter._tcp SRV 5        100     30868 cdf
+
+diameter (
+   IN NAPTR 10 100 "S" "aaa+ap3:diameter.tcp" "" _diameter._tcp )
+{% elif DNS_TYPE  == "allinone" %}
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     {{ ansible_hostname }}.{{ DOMAIN }}. root.{{ ansible_hostname }}.{{ DOMAIN }}. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      {{ ansible_hostname }}.{{ DOMAIN }}.
+@       IN      A       127.0.0.1
+@       IN      AAAA    ::1
+
+{{ ansible_hostname }}    IN      A       {{ DNS_DDNS_IP }}
+
+_diameter._tcp SRV 5        100     30868 {{ ansible_hostname }}
+
+diameter (
+   IN NAPTR 10 100 "S" "aaa+ap3:diameter.tcp" "" _diameter._tcp )
+{% endif %}

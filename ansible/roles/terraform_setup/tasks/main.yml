@@ -1,0 +1,71 @@
+---
+ - name: copy ssh key
+   copy:
+       src: "{{ REPO_KEY }}"
+       dest: "/home/c3po_ngic.key"
+       mode: 0600
+
+ - name: Git clone for vEPC terraform scripts
+   git:
+       repo: "{{ TR_REPO }}"
+       dest: "{{ TR_REPO_DIR }}"
+       key_file: "/home/c3po_ngic.key"
+       accept_hostkey: yes
+       version: master
+       update: no
+
+ - name: Copy input.cfg
+   copy:
+    src: "{{ item }}"
+    dest: "{{ TR_REPO_DIR }}"
+    owner: root
+    group: root
+    mode: 0644
+   with_items:
+     - "../../c3po_ngic_input.cfg"
+
+ - name: Copy sgx yml file
+   copy:
+    src: "{{ item }}"
+    dest: "{{ TR_REPO_DIR }}/ansible/group_vars"
+    owner: root
+    group: root
+    mode: 0644
+   with_items:
+     - "../../ansible/group_vars/sgx.yml"
+     - "../../ansible/group_vars/c3po.yml"
+     - "../../ansible/group_vars/repo.yml"
+     - "../../ansible/group_vars/prephost.yml"
+
+ - name: copy sgx_inv file on DP hosts
+   copy:
+       src: "{{ TR_REPO_DIR }}/ansible/sgx_inv"
+       dest: "{{ TR_REPO_DIR }}/ansible"
+   when: HOST_TYPE == "spgw" or HOST_TYPE == "dp"
+
+ - name: get prerequisite
+   shell : "cd {{ TR_REPO_DIR }}/scripts && ./prerequisite.sh"
+   args:
+     executable: /bin/bash
+
+ - name: host validation
+   shell : "cd {{ TR_REPO_DIR }}/terraform/scripts && ./host_validation.sh"
+   args:
+     executable: /bin/bash
+
+ - name: Generate device script for control plane
+   shell : "cd {{ TR_REPO_DIR }}/terraform/scripts && ./network_creation.sh {{ HOST_TYPE }}"
+   args:
+     executable: /bin/bash
+
+ - name: prepare sgx host from DP host
+   shell: "cd {{ TR_REPO_DIR }}/ansible && /usr/bin/ansible-playbook -i sgx_inv sgx_host_pre.yml -u ubuntu -e 'ansible_python_interpreter=/usr/bin/python3'"
+   args: 
+       executable: /bin/bash
+   when: HOST_TYPE == "spgw" or HOST_TYPE == "dp"
+
+ - name: Deploy
+   shell : "cd {{ TR_REPO_DIR }} && ./deploy.sh | tee /tmp/deploy.log"
+   args:
+     executable: /bin/bash
+

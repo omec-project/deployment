@@ -1,0 +1,19 @@
+---
+ - name: add ubuntu user
+   user: 
+       name: ubuntu
+       state: present
+       home: "/home/ubuntu"
+
+ - name: add authorized key
+   authorized_key: 
+       user: ubuntu
+       state: present 
+       key: "{{ lookup('file', '/home/ubuntu/.ssh/id_rsa.pub') }}"
+ 
+ - name: add ubuntu user into sudoers file 
+   lineinfile: 
+       dest: "/etc/sudoers"
+       state: present
+       regexp: "ubuntu"
+       line: "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL"

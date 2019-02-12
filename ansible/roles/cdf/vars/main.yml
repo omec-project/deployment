@@ -1,0 +1,6 @@
+---
+# githubuser: ""
+# githubpassword: ""
+ REPO_DIR: "/opt/cdf/c3po"
+ GIT_REPO: "https://{{ githubuser }}:{{ githubpassword }}@ilpm.intel-research.net/bitbucket/scm/vccbbw/c3po.git"
+ CDF_LOG: "/var/log/cdf_install.log" 

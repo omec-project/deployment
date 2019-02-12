@@ -1,0 +1,4 @@
+---
+ REPO_DIR: "/opt/sgx-kms/c3po" 
+ KMS_DEPS_LOG: "/var/log/sgx_kms_deps_install.log"
+ KMS_BUILD_LOG: "/var/log/sgx_kms_install.log"

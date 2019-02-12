@@ -1,0 +1,5 @@
+---
+# file: site.yml
+- import_playbook: playbooks/common.yml
+- import_playbook: playbooks/control_plane.yml
+- import_playbook: playbooks/data_plane.yml

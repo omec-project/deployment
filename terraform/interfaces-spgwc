@@ -1,0 +1,31 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+source /etc/network/interfaces.d/*
+# The loopback network interface
+auto lo
+iface lo inet loopback
+# The primary network interface
+auto ens3
+iface ens3 inet dhcp
+
+# The S11 communication interface
+auto ens4
+iface ens4 inet static
+	address	10.0.2.70
+	netmask	255.255.255.0
+	network	10.0.2.0
+
+# The FPCNB communication interface
+auto ens5
+iface ens5 inet static
+	address	10.0.7.80
+	netmask	255.255.255.0
+	network	10.0.7.0
+
+# The S5S8_SGWC communication interface
+auto ens6
+iface ens6 inet static
+	address	10.0.5.90
+	netmask	255.255.255.0
+	network	10.0.5.0
+

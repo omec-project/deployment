@@ -1,0 +1,4 @@
+---
+ FLAG_DSTATIC_ARP: true
+ FLAG_DPERF_TEST: true
+ SPGWU_LOG: /var/log/spgwu_install.log

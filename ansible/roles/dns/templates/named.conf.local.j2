@@ -1,0 +1,19 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+zone "{{ DOMAIN }}" {
+ type master;
+ file "/etc/bind/db.{{ DOMAIN }}";
+};
+
+zone "{{ '.'.join(DNS_DDNS_IP.split('.')[-2::-1]) }}in-addr.arpa" {
+ type master;
+ notify no;
+ file "/etc/bind/db.{{ DNS_DDNS_IP.split(".")[-1] }}";
+};
+

@@ -1,0 +1,47 @@
+# Copyright (c) 2017 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# #############################################################################
+# Script to create/assign sriov virtual functions (VF)
+#
+# Authors:
+#       Sunder Rajan, Ashok <ashok.sunder.rajan@intel.com>
+#       Martin Mc Donald <martin.mcdonald@ng4t.com>
+#
+# #############################################################################
+
+# read from shell script with:
+# source c3povm_defs.cfg
+
+# Define Control plane S1MME MACVTAP IF name
+S1MME_PFDEV=
+
+# Define c3po[MME, HSS, Cassandra, DNS, CTF, CDF] SRIOV IF
+INIT_NUM_CTRL_VF=0
+NUM_CTRL_VF=17
+CTRL_PFDEV=
+
+# Define Data to Control Plane PCI Devices
+NUM_DP_CTRL_PF=4
+DP_CTRL_PFDEV=
+# Define Data  Plane PCI Devices
+# nodedev-list format: pci_<domain>_<bus>_<func>_<dev>
+NUM_DTPL_DP2_PF=2
+DTPL_DP2_PFDEV=
+DEF_IF_S5S8_VM_NGIC_DP2_PCI=
+DEF_IF_SGI_VM_NGIC_DP2_PCI=
+NUM_DTPL_DP1_PF=2
+DTPL_DP1_PFDEV=
+DEF_IF_S1U_VM_NGIC_DP1_PCI=
+DEF_IF_S5S8_VM_NGIC_DP1_PCI=

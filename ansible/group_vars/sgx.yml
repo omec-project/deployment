@@ -1,0 +1,18 @@
+---
+ SGX_BUILD: "false"
+ KEY_NAME_SPACE: "dealer_namespace"
+ KMS_PORT: "50443" 
+ CDR_IN_PORT: "6789"
+ CDR_OUT_PORT: "6790"
+ DL_IN_PORT: "51443" 
+ DL_OUT_PORT: "52443"
+ SGX_VERSION: "1.9"
+ SGX_DRIVER_LINK: "https://download.01.org/intel-sgx/linux-{{ SGX_VERSION }}/sgx_linux_x64_driver_3abcf82.bin"
+ SGX_PLATFORM_LINK: "https://download.01.org/intel-sgx/linux-{{ SGX_VERSION }}/sgx_linux_ubuntu16.04.1_x64_psw_1.9.100.39124.bin"
+ SGX_SDK_LINK: "https://download.01.org/intel-sgx/linux-{{ SGX_VERSION }}/sgx_linux_ubuntu16.04.1_x64_sdk_1.9.100.39124.bin"
+ DEPS_DIR: "/opt/tmp"
+ ISVSVN: "0"
+ CTF_ARCHIEVE_PATH: "test/data/archive"
+ CTF_TRACK_PATH: "test/data/tracking"
+ CTF_LOG_PATH: "logs"
+ 

@@ -1,0 +1,4 @@
+---
+ SERVICE_SCRIPT_PATH: '{{ NGIC_REPO_DIR }}/cp/run.sh'
+ SPGWC_LOG: /var/log/spgwc_install.log
+ DEALER_IN_IP: 10.212.93.78

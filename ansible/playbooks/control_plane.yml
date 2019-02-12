@@ -1,0 +1,77 @@
+---
+ - name: Installation and configuration of mme
+   hosts: mme
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/c3po.yml"
+     - "../group_vars/repo.yml"
+   roles:
+     - mme
+   tags:
+     - mme
+ - name: Installation and configuration of hss
+   hosts: hss
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/c3po.yml"
+     - "../group_vars/repo.yml"
+   roles:
+     - hss
+   tags:
+     - hss
+ - name: Installation and configuration of db
+   hosts: db
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/repo.yml"
+   roles:
+     - db
+   tags:
+     - db
+ - name: Installation and configuration of spgwc
+   hosts: spgwc
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/repo.yml"
+     - "../group_vars/c3po.yml"
+   roles:
+     - spgwc
+   tags:
+     - spgwc
+ - name: Installation and configuration of FPC
+   hosts: fpc
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/repo.yml"
+   roles:
+     - fpc
+   tags:
+     - fpc
+#-----------------------------------------------
+ - name: Installation and configuration of sgwc
+   hosts: sgwc
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/repo.yml"
+     - "../group_vars/c3po.yml"
+   roles:
+     - sgwc
+   tags: 
+     - sgwc
+
+ - hosts: pgwc
+   become: yes
+   become_method: sudo
+   vars_files:
+     - "../group_vars/repo.yml"
+     - "../group_vars/c3po.yml"
+   roles:
+     - pgwc
+   tags: 
+     - pgwc

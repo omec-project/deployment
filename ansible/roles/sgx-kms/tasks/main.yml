@@ -1,0 +1,56 @@
+---
+ - name: Create sgx-dl-in dir 
+   file: 
+      path: "/opt/kms"
+      state: directory 
+      mode: 0755
+
+ - name: Create deps temp dir 
+   file: 
+      path: "{{ DEPS_DIR }}" 
+      state: directory 
+      mode: 0755
+   register: dir_state
+
+ - name: Git clone c3po repository 
+   git: 
+      repo: "{{ SGX_REPO }}"
+      dest: "{{ REPO_DIR }}"
+      key_file: "/home/c3po_ngic.key"
+      accept_hostkey: yes
+      version: "{{ SGX_COMMIT_ID }}"
+      update: no 
+
+ - name: Copying scripts and config template
+   template: 
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      mode: "{{ item.mode }}"
+   with_items: 
+      - { src: 'deps_install.sh', dest: '{{ REPO_DIR }}/sgxcdr/kms', mode: '0755' }
+      - { src: 'kms_install.sh', dest: '{{ REPO_DIR }}/sgxcdr/kms', mode: '0755' }
+      - { src: 'kms_json.j2', dest: '{{ REPO_DIR }}/sgxcdr/kms/conf/kms.json', mode: '0644' }
+  
+ 
+ - name: Downloading all dependencies
+   shell: "cd {{ REPO_DIR }}/sgxcdr/kms && ./deps_install.sh |tee {{ KMS_DEPS_LOG }}"
+   args: 
+      executable: /bin/bash
+   when: dir_state.changed
+
+ - name: Build kms with sgx-dealer-in mrenclave and mrsigner
+   shell: "cd {{ REPO_DIR }}/sgxcdr/kms && ./kms_install.sh {{ hostvars[groups['sgx-dealer-in'][0]]['DLIN_MRENCLAVE'] }} {{ hostvars[groups['sgx-dealer-in'][0]]['DLIN_MRSIGNER'] }} |tee {{ KMS_BUILD_LOG }}"
+   args: 
+      executable: /bin/bash 
+
+ - name: Build kms with sgx-dealer-out mrenclave and mrsigner
+   shell: "cd {{ REPO_DIR }}/sgxcdr/kms && ./kms_install.sh {{ hostvars[groups['sgx-dealer-out'][0]]['DLOUT_MRENCLAVE'] }} {{ hostvars[groups['sgx-dealer-out'][0]]['DLOUT_MRSIGNER'] }} |tee {{ KMS_BUILD_LOG }}"
+   args:
+      executable: /bin/bash
+ - debug:
+      msg: 
+         - "sgx-dealer-in: MRENCLAVE: {{ hostvars[groups['sgx-dealer-in'][0]]['DLIN_MRENCLAVE'] }} MRSIGNER: {{ hostvars[groups['sgx-dealer-in'][0]]['DLIN_MRSIGNER'] }}"
+         - "sgx-dealer-out: MRENCLAVE: {{ hostvars[groups['sgx-dealer-out'][0]]['DLOUT_MRENCLAVE'] }} MRSIGNER: {{ hostvars[groups['sgx-dealer-out'][0]]['DLOUT_MRSIGNER'] }}"
+
+# - name: start kms 
+#   shell: "cd {{ REPO_DIR }}/sgxcdr/kms && ./kms -j conf/kms.json 

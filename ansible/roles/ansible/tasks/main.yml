@@ -1,0 +1,14 @@
+---
+- name: Installing dependancies
+  apt: 
+     name: software-properties-common
+     update_cache: yes
+
+- name: Adding repository
+  apt_repository:
+    repo: ppa:ansible/ansible
+ 
+- name: Installing 
+  apt: 
+     name: ansible
+     update_cache: yes

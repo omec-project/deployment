@@ -1,0 +1,4 @@
+---
+# file: cleanup.yml
+- import_playbook: playbooks/cleanup.yml
+

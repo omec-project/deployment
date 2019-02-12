@@ -1,0 +1,17 @@
+{
+    "common": {
+        "maxconnections": "16",
+        "kmsserver": "{{ SGX_KMS_SGX_KMS_IP }}",
+        "kmsport": "{{ kmsport }}",
+        "keynamespace": "{{ keynamespace }}"
+    },
+
+    "dealer": {
+        "runmode": "OUT",
+        "cdrhost": "10.212.93.77",
+        "cdrport": "{{ cdrport }}",
+	"port": "{{ dl-in-port }}",
+	"cdrpath": "./cdr",
+	"cdrarchpath": "/tmp"
+    }
+}

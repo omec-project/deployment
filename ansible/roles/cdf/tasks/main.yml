@@ -1,0 +1,56 @@
+---
+ - name: Create cdf directory 
+   file: 
+       path: "/opt/cdf"
+       state: directory 
+       mode: 0755
+ 
+ - name: Git clone for C3PO 
+   git: 
+       repo: "{{ SGX_REPO }}"
+       dest: "{{ REPO_DIR }}"
+       key_file: "/home/c3po_ngic.key"
+       accept_hostkey: yes
+       version: "{{ SGX_COMMIT_ID }}"
+       update: no
+
+ - name: Copying build script
+   copy:
+      src: ansible_c3po_install.sh
+      dest: "{{ REPO_DIR }}/"
+      owner: "root"
+      mode: "0755"
+
+ - name: Copying CDF Makefile
+   copy:
+      src: Makefile
+      dest: "{{ REPO_DIR }}/"
+      owner: "root"
+ 
+ - name: Copying config template files
+   template: 
+      src: cdf.conf.j2 
+      dest: "{{ REPO_DIR }}/cdf/conf/cdf.conf"
+      owner: root
+ 
+ - name: update dhclient entry
+   lineinfile:
+      path: /etc/dhcp/dhclient.conf
+      line: 'supersede domain-name-servers {% if DNS_TYPE == "distributed" %}{{ DNS_DDNS_IP }}{% elif DNS_TYPE  == "allinone" %}127.0.0.1{% endif %}'
+
+ - name: update dns server IP 
+   lineinfile: 
+      path: /etc/resolv.conf
+      insertbefore: '^nameserver'
+      line: 'nameserver {% if DNS_TYPE == "distributed" %}{{ DNS_DDNS_IP }}{% elif DNS_TYPE  == "allinone" %}127.0.0.1{% endif %}'
+
+ - name: Run the installation script
+   shell: cd {{ REPO_DIR }} && ./ansible_c3po_install.sh |tee {{ CDF_LOG }}
+   args:
+      executable: /bin/bash
+
+ - name: Create cerificate 
+   shell: "cd {{ REPO_DIR }}/cdf/conf && ../bin/make_certs.sh {% if DNS_TYPE == 'distributed' %}cdf{% elif DNS_TYPE  == 'allinone' %}{{ ansible_hostname }}{% endif %} {{ DOMAIN }}"
+   args: 
+      executable: /bin/bash 
+ 

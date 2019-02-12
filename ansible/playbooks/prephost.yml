@@ -1,0 +1,19 @@
+---
+- name: Preparing Hosts 
+  hosts: all
+  become: yes
+  become_method: sudo
+  vars_files:
+    - "../group_vars/prephost.yml"	
+    - "../group_vars/repo.yml"	
+#  vars_prompt:
+#    - name: "githubuser"
+#      prompt: "Enter your github username"
+#      private: no
+#    - name: "githubpassword"
+#      prompt: "Enter your github password"
+#      private: yes 
+  roles:
+    - kvm
+    - ansible	
+    - terraform_setup

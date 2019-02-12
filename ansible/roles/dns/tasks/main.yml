@@ -1,0 +1,56 @@
+---
+# Task file Bind setup 
+ - name: Install bind packages 
+   apt: 
+      name: "{{ item }}"
+      state: present
+   with_items: 
+      - bind9
+      - dnsutils
+      - bind9-doc 
+
+ - name: Set hostname
+#   hostname:
+#      name: "{% if DNS_TYPE == 'distributed' %}
+#            {{ HOST_NAME }}
+#            {% elif DNS_TYPE == 'allinone' %}
+#            {{ ALLINONE_HOST }}
+#           {% endif %}"
+   shell: hostnamectl set-hostname  "{% if DNS_TYPE == 'distributed' %}{{ HOST_NAME }}{% elif DNS_TYPE == 'allinone' %} {{ ALLINONE_HOST }} {% endif %}"
+
+# - name: Set hostname fact
+#   set_fact:
+#      ansible_fqdn: "{% if DNS_TYPE == 'distributed' %}{{ HOST_NAME }}{% endif %}"
+
+ - name: copying default bind and named options files
+   copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: "root"
+      mode: "0644"
+   notify: restart bind9
+   with_items:
+      - { src: 'named.conf.options', dest: '/etc/bind/named.conf.options' }
+      - { src: 'default_bind', dest: '/etc/default/bind9' }
+
+ - name:  copying forward and reverse zone configuration files
+   template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+   notify: restart bind9
+   with_items:
+      - { src: 'db_forwarder.j2', dest: '/etc/bind/db.{{ DOMAIN }}' }
+      - { src: 'db_reverse.j2', dest: '/etc/bind/db.{{ DNS_DDNS_IP.split(".")[-1] }}' }
+      - { src: 'named.conf.local.j2', dest: '/etc/bind/named.conf.local' }
+
+ - name: search host entry for {{ DOMAIN }} 
+   shell: "cat /etc/hosts |grep 127.0.1.1"
+   ignore_errors: true
+   register: check_host
+
+ - name: update hosts file
+   shell: "{{ item }}"
+   with_items: 
+      - "echo  \"127.0.1.1\t{{ HOST_NAME }}.{{ DOMAIN }}\t{{ HOST_NAME }}\" >> /etc/hosts"
+      - "echo  \"{{ DNS_DDNS_IP }}\t{{ HOST_NAME }}.{{ DOMAIN }}\t{{ HOST_NAME }}\" >> /etc/hosts"
+   when: '"127.0.1.1" not in check_host.stdout'

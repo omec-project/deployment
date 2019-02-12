@@ -1,0 +1,9 @@
+---
+tr_repo_url : "ilpm.intel-research.net/bitbucket/scm/vccbbw/terraform_ngic_deployment.git"
+tr_repo_dir : "/opt"
+
+#ansible_ssh_user : "root"
+#ansible_ssh_pass : "12345678"
+
+
+

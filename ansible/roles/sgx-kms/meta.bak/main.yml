@@ -1,0 +1,4 @@
+---
+# Depends on sgx-dealer-in for generate MRENCLAVE and MRSIGNER dealer hash
+ dependencies: 
+    - { role: sgx-dealer-in, hosts: sgx-dealer-in } 

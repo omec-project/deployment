@@ -1,0 +1,2 @@
+---
+- import_playbook: playbooks/sgx_host_pre.yml

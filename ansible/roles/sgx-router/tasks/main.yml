@@ -1,0 +1,29 @@
+---
+ - name: Create sgx-dl-in directory
+   file:
+      path: "/opt/sgx-router"
+      state: directory
+      mode: 0755
+
+ - name: Git clone c3po repository
+   git:
+      repo: "{{ SGX_REPO }}"
+      dest: "{{ REPO_DIR }}"
+      key_file: "/home/c3po_ngic.key"
+      accept_hostkey: yes
+      version: "{{ SGX_COMMIT_ID }}"
+      update: no
+
+ - name: Installing python and python-pip packages 
+   apt:
+      name: "{{ item }}"
+      state: present
+   with_items:
+      - python2.7 
+      - python-pip 
+
+ - name: Installing pyzmq package
+   pip: 
+      name: pyzmq 
+      version: 17.0.0
+      executable: pip2

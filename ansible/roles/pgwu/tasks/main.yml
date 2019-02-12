@@ -1,0 +1,83 @@
+---
+ - setup:
+   register: host_facts
+ - set_fact:
+     temp_var: "{{ ansible_interfaces|sort }}"
+ - set_fact:
+     S5S8_PGWU_DEV: "ansible_{{ temp_var[2] }}"
+     SGI_DEV: "ansible_{{ temp_var[3] }}"
+ - set_fact:
+     S5S8_PGWU_PCIID: "{{ host_facts.ansible_facts[S5S8_PGWU_DEV].pciid }}"
+     S5S8_PGWU_MAC: "{{ host_facts.ansible_facts[S5S8_PGWU_DEV].macaddress }}"
+     SGI_PCIID: "{{ host_facts.ansible_facts[SGI_DEV].pciid }}"
+     SGI_MAC: "{{ host_facts.ansible_facts[SGI_DEV].macaddress }}"
+ - debug:
+     msg: 
+        - "S5S8 = {{ S5S8_PGWU_DEV }} - {{ S5S8_PGWU_PCIID }} - {{ S5S8_PGWU_MAC }}"
+        - "SGI = {{ SGI_DEV }} - {{ SGI_PCIID }} - {{ SGI_MAC }}"
+
+ - name: Get PCIID of VF S5S8 interface
+   shell: lshw -c network -businfo | grep Virtio | awk '{print $1}' |cut -d '@' -f2 | tail -n 1
+   register: pgwu_s5s8_pciid
+ - debug:
+     msg:  
+       - "PGWU_S5S8_PCIID: {{ pgwu_s5s8_pciid.stdout_lines[0] }}"
+
+ - name: Git clone for NGIC-RTC
+   git:
+       repo: "{{ NGIC_REPO }}"
+       dest: "{{ NGIC_REPO_DIR }}"
+       key_file: "/home/c3po_ngic.key"
+       version: "{{ NGIC_COMMIT_ID }}"
+       accept_hostkey: yes
+       update: no
+
+ - name: Installing libs
+   apt:
+      name: "{{ item }}"
+      state: present
+   with_items:
+      - curl 
+      - build-essential
+      - linux-headers-{{ ansible_kernel }}
+      - unzip
+      - libpcap0.8-dev
+      - gcc 
+      - libjson0-dev 
+      - make 
+      - libc6 
+      - libc6-dev
+      - g++-multilib
+      - libzmq3-dev
+      - libcurl4-openssl-dev
+      - libssl-dev
+      - cmake
+
+ - name: copying ansible install pgwu build script
+   template:
+      src: ansible_install_pgwu.j2
+      dest: "{{ NGIC_REPO_DIR }}/ansible_install_pgwu.sh"
+      owner: "root"
+      mode: "0755"
+ 
+ - name:  copying pgwu configuration files
+   template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      backup: yes
+   with_items:
+      - { src: 'dp_config.j2', dest: '/{{ NGIC_REPO_DIR }}/config/dp_config.cfg' }
+      - { src: 'interface.j2', dest: '/{{ NGIC_REPO_DIR }}/config/interface.cfg' }
+      - { src: 'ng-core_cfg.j2', dest: '{{ NGIC_REPO_DIR }}/config/ng-core_cfg.mk' }
+      - { src: 'Makefile1.j2', dest: '{{ NGIC_REPO_DIR }}/dp/Makefile' }
+
+ - name: Run the installation script
+   shell: cd {{ NGIC_REPO_DIR }} && ./ansible_install_pgwu.sh dp |tee {{ PGWU_LOG }}
+   args:
+      executable: /bin/bash
+ 
+ - name: DPDK Binding for SGI Interface  
+   shell: python {{ NGIC_REPO_DIR }}/dpdk/usertools/dpdk-devbind.py -b igb_uio {{ SGI_PCIID }}
+   register: result
+ - debug: 
+      var: result

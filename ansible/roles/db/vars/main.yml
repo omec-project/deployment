@@ -1,0 +1,4 @@
+---
+ ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+ CLUSTER_NAME: "HSS CLUSTER"
+ NO_OF_USERS: "1000"

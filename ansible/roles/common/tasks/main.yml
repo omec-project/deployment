@@ -1,0 +1,15 @@
+---
+ - name: Update the packages on all hosts
+   apt: 
+     update_cache: yes
+
+ - name: downloading git packages
+   apt:
+     name: git
+     state: present
+ 
+ - name: copy git ssh key 
+   copy: 
+       src: "/home/c3po_ngic.key"
+       dest: "/home/c3po_ngic.key"
+       mode: 0600

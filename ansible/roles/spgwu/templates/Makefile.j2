@@ -1,0 +1,104 @@
+ifeq ($(RTE_SDK),)
+$(error "Please define RTE_SDK environment variable")
+endif
+MAKEFLAGS += -j
+RTE_TARGET ?= x86_64-native-linuxapp-gcc
+include $(RTE_SDK)/mk/rte.vars.mk
+include $(NG_CORE)/config/ng-core_cfg.mk
+APP = ngic_dataplane
+SRCS-y := main.c\
+	pkt_handler.c\
+	cdr.c\
+	master_cdr.c\
+	session_cdr.c\
+	config.c\
+	init.c\
+	dataplane.c\
+	gtpu.c\
+	ether.c\
+	ipv4.c\
+	util.c\
+	acl.c\
+	meter.c\
+	adc_table.c\
+	pcc_table.c\
+	sess_table.c\
+	commands.c\
+	stats.c\
+	ddn_utils.c\
+	extended_cdr.c\
+	timer_stats.c\
+	kni_pkt_handler.c\
+	gtpu_echo.c\
+	pipeline/epc_packet_framework.o\
+	pipeline/epc_arp.o\
+	pipeline/epc_spns_dns.o\
+	$(SRCDIR)/../interface/interface.o\
+	$(SRCDIR)/../cp_dp_api/vepc_cp_dp_api.o\
+	$(SRCDIR)/../test/simu_cp/nsb/nsb_test_util.o\
+	$(SRCDIR)/../test/simu_cp/simu_cp.o\
+	$(SRCDIR)/../test/simu_cp/pkt_filtrs.o\
+	$(SRCDIR)/../interface/ipc/dp_ipc_api.o\
+	$(SRCDIR)/../interface/udp/vepc_udp.o\
+CFLAGS += -I$(SRCDIR)/
+CFLAGS += -I$(SRCDIR)/../interface
+CFLAGS += -I$(SRCDIR)/../interface/ipc
+CFLAGS += -I$(SRCDIR)/../interface/udp
+CFLAGS += -I$(SRCDIR)/../interface/sdn
+CFLAGS += -I$(SRCDIR)/../interface/zmq
+CFLAGS += -I$(SRCDIR)/../cp_dp_api
+CFLAGS += -I$(SRCDIR)/../test/simu_cp
+CFLAGS += -I$(SRCDIR)/../test/simu_cp/nsb
+CFLAGS += -I$(SRCDIR)/pipeline
+CFLAGS += -I$(SRCDIR)/../cp
+CFLAGS += -I$(SRCDIR)/../lib/libsponsdn
+CFLAGS += -Wno-psabi # suppress "The ABI for passing parameters with 64-byte alignment has changed in GCC 4.6"
+CFLAGS += -DLDB_DP	# should be included for dataplane.
+ifneq (,$(findstring NGCORE_SHRINK, $(CFLAGS)))
+        SRCS-y += pipeline/epc_ul.o
+        SRCS-y += pipeline/epc_dl.o
+else
+		SRCS-y += pipeline/epc_rx.o\
+		pipeline/epc_tx.o\
+		pipeline/epc_load_balance.o\
+		pipeline/epc_worker.o
+endif
+ifneq (,$(findstring SDN_ODL_BUILD, $(CFLAGS)))
+	SRCS-y += $(SRCDIR)/../interface/zmq/zmqsub.o
+	SRCS-y += $(SRCDIR)/../interface/zmq/zmqpub.o
+	LDFLAGS += -L/usr/local/lib -lzmq
+endif
+ifeq ($(SGX_BUILD), 1)
+	SRCS-y += ssl_client.c
+	CFLAGS += -DSGX_CDR
+	CFLAGS += -I$(NG_CORE)/linux-sgx/common/inc
+	LDFLAGS += -lssl
+endif
+CFLAGS += -O3
+{% if FLAG_DSTATIC_ARP  == true %} 
+CFLAGS += -DSTATIC_ARP 
+{% else %}
+#CFLAGS += -DSTATIC_ARP
+{% endif %}
+ifneq (,$(findstring SIMU_CP, $(CFLAGS)))
+        SRCS-y += $(SRCDIR)/../cp/cp_stats.o
+endif
+CFLAGS += -DSTATS
+CFLAGS += -DDP_TABLE_CONFIG
+{% if FLAG_DPERF_TEST  == true %}
+CFLAGS += -DPERF_TEST
+{% else %}
+#CFLAGS += -DPERF_TEST
+{% endif %}
+CFLAGS += -Werror
+CFLAGS += -Wunused-variable
+CFLAGS_config.o := -D_GNU_SOURCE
+ifeq ($(CONFIG_RTE_TOOLCHAIN_GCC),y)
+CFLAGS_dataplane.o += -Wno-return-type
+endif
+LDFLAGS += -L$(RTE_SRCDIR)/../lib/libsponsdn/x86_64-native-linuxapp-gcc/ -lsponsdn
+LDFLAGS += -L$(HYPERSCANDIR)/build/lib
+LDFLAGS += -lexpressionutil -lhs -lhs_runtime -lstdc++ -lm -lcrypto
+LDFLAGS += -lrte_pmd_af_packet
+LDFLAGS += -lpcap
+include $(RTE_SDK)/mk/rte.extapp.mk

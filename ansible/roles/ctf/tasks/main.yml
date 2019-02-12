@@ -1,0 +1,69 @@
+---
+ - name: Create ctf directory 
+   file: 
+       path: "/opt/ctf"
+       state: directory 
+       mode: 0755
+ 
+ - name: Git clone for C3PO 
+   git: 
+       repo: "{{ SGX_REPO }}"
+       dest: "{{ REPO_DIR }}"
+       key_file: "/home/c3po_ngic.key"
+       accept_hostkey: yes
+       version: "{{ SGX_COMMIT_ID }}"
+       update: no
+
+ - name: Copying build script
+   copy:
+      src: ansible_c3po_install.sh
+      dest: "{{ REPO_DIR }}/"
+      owner: "root"
+      mode: "0755"
+
+ - name: Copying CTF Makefile
+   copy:
+      src: Makefile
+      dest: "{{ REPO_DIR }}/"
+      owner: "root"
+      mode: "0755"
+
+ - name: update dns entry
+   lineinfile:
+      path: /etc/dhcp/dhclient.conf
+      line: 'supersede domain-name-servers {% if DNS_TYPE == "distributed" %}{{ DNS_DDNS_IP }}{% elif DNS_TYPE  == "allinone" %}127.0.0.1{% endif %}'
+
+ - name: update dns server IP
+   lineinfile:
+      path: /etc/resolv.conf
+      insertbefore: '^nameserver'
+      line: 'nameserver {% if DNS_TYPE == "distributed" %}{{ DNS_DDNS_IP }}{% elif DNS_TYPE  == "allinone" %}127.0.0.1{% endif %}'
+
+ - name: Copying config file
+   template: 
+      src: "{{ item.src }}" 
+      dest: "{{ item.dest }}"
+   with_items: 
+      - {src: 'ctf.conf.j2', dest: '{{ REPO_DIR }}/ctf/conf/ctf.conf' }
+      - {src: 'ctf.json.j2', dest: '{{ REPO_DIR }}/ctf/conf/ctf.json' }
+
+ - name: Create archive and log diretcories
+   file:
+      path: "{{ item }}"
+      state: directory
+      mode: 0755
+   with_items:
+      - "{{ REPO_DIR }}/ctf/{{ CTF_ARCHIEVE_PATH }}"
+      - "{{ REPO_DIR }}/ctf/{{ CTF_TRACK_PATH }}"
+      - "{{ REPO_DIR }}/ctf/{{ CTF_LOG_PATH }}"
+
+ - name: Run the installation script
+   shell: cd {{ REPO_DIR }} && ./ansible_c3po_install.sh |tee {{ CDF_LOG }}
+   args:
+      executable: /bin/bash
+
+ - name: Create cerificate
+   shell: "cd {{ REPO_DIR }}/ctf/conf && ../bin/make_certs.sh ctf {{ DOMAIN }}"
+   args:
+      executable: /bin/bash
+

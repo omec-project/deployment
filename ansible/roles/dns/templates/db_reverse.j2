@@ -1,0 +1,29 @@
+{% if DNS_TYPE == "distributed" %}
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     {{ HOST_NAME }}.{{ DOMAIN }}. root.{{ HOST_NAME }}.{{ DOMAIN }}. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      {{ HOST_NAME }}.{{ DOMAIN }}.
+{{ CTF_CTF_RF_IP.split(".")[-1] }}      IN      PTR     ctf.{{ DOMAIN }}.
+{{ CDF_CDF_RF_IP.split(".")[-1] }}      IN      PTR     cdf.{{ DOMAIN }}.
+{% elif DNS_TYPE == "allinone" %}
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     {{ ansible_hostname }}.{{ DOMAIN }}. root.{{ ansible_hostname }}.{{ DOMAIN }}. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      {{ ansible_hostname }}.{{ DOMAIN }}.
+{% endif %}
