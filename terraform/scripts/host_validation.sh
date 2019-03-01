@@ -338,13 +338,28 @@ echo "Checking for NIC requirement  "
 echo "---------------------------------------------------------"
 
 NGIC_DEF_CFG="../c3povm_defs.cfg"
+INPUT_CFG="../../c3po_ngic_input.cfg"
 cp $NGIC_DEF_CFG.blank $NGIC_DEF_CFG
-IF_DEV_LIST=($(lshw -c network -businfo | grep -i '10GbE\|10-Gigabit' |grep -v 'eno1' | awk '{print $2;}'))
+ip_list=`cat $INPUT_CFG |grep ^HOST_TYPE | grep '@' |cut -d '@' -f2 | cut -d '"' -f1`
+for i in $ip_list
+do
+
+   temp_var=`ifconfig |grep -B1 $i | awk '{print $1 }' |grep -v inet`
+   if [ ! -z $temp_var ] ; then
+       mgmt_int=`ifconfig |grep -B1 $i | awk '{print $1 }' |grep -v inet`
+   fi
+done
+echo "MGMT_INT=$mgmt_int"
+
+IF_DEV_LIST_TMP=($(lshw -c network -businfo | grep -i '10GbE\|10-Gigabit' | awk '{print $2;}' |grep -v 'network'))
+echo "Before : ${IF_DEV_LIST_TMP[@]}"
+IF_DEV_LIST=(${IF_DEV_LIST_TMP[@]/$mgmt_int})
+echo "After : ${IF_DEV_LIST[@]}"
 
 for link in ${IF_DEV_LIST[@]}
 do
    ifconfig $link up
-   sleep 1
+   sleep 2
 done
 
 OPER_STATE=()
@@ -385,6 +400,7 @@ fi
 
 ##########################################################################
 
+network_card_validation
 hardware_validation
 cpu_validation
-network_card_validation
+#network_card_validation

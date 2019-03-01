@@ -25,13 +25,18 @@ echo "KVM pool validation: -"
 echo "-------------------"
 POOL_NAME=`virsh pool-list | grep  images | awk '{ print $1 }'`
 POOL_STATUS=`virsh pool-list | grep  images | awk '{ print $2 }'`
-if [  $POOL_NAME == "images"  -a  $POOL_STATUS == "active"  ] ; then 
+if [  "$POOL_NAME" == "images"  -a  "$POOL_STATUS" == "active"  ] ; then 
 	echo "$POOL_NAME pool already exist"
 else 
 	if [ -e "/var/lib/libvirt/images" ] ; then 
 		virsh pool-define-as images --type dir --target /var/lib/libvirt/images
 		virsh pool-autostart images
-		virsh pool-start images 
+		virsh pool-start images
+        else 
+                mkdir -p /var/lib/libvirt/images 
+                virsh pool-define-as images --type dir --target /var/lib/libvirt/images
+                virsh pool-autostart images
+                virsh pool-start images
 	fi
 fi
 

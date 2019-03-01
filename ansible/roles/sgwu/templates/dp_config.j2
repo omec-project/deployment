@@ -20,7 +20,8 @@ S1U_IP={{ SGWU_S1U_IP }}
 S1U_MAC={{ S1U_MAC }}
 S5S8_SGWU_IP={{ SGWU_S5S8_SGWU_IP }}
 S5S8_SGWU_MAC={{ S5S8_SGWU_MAC }}
-
+SGW_S5S8GW_MASK=
+SGW_S5S8GW_IP=
 #####[PGWU]#####
 #SPGW_CFG=02
 #S5S8_PGWU_PORT=0000:00:08.0
@@ -37,11 +38,11 @@ MEMORY=4096
 NUMA=0
 
 #Give numa memory according to numa1 or numa0 socket
-NUMA0_MEMORY=4096
+NUMA0_MEMORY=$MEMORY
 NUMA1_MEMORY=0
 
-#set coremask here
-COREMASK=0xf
+#set corelist here
+CORELIST="0-3"
 #Optional:
 #SGI_GW_IP=13.1.1.110
 #SGI_MASK=255.255.0.0

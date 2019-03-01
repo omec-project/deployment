@@ -9,8 +9,6 @@
    git: 
        repo: "{{ SGX_REPO }}"
        dest: "{{ REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
-       accept_hostkey: yes
        version: "{{ SGX_COMMIT_ID }}"
        update: no
 

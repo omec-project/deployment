@@ -37,12 +37,11 @@ MEMORY=4096
 NUMA=0
 
 #Give numa memory according to numa1 or numa0 socket
-NUMA0_MEMORY=4096
+NUMA0_MEMORY=$MEMORY
 NUMA1_MEMORY=0
 
-#set coremask here
-COREMASK=0xf
-
+#set corelist here
+CORELIST="0-3"
 #Optional:
 #SGI_GW_IP=13.1.1.110
 #SGI_MASK=255.255.0.0
