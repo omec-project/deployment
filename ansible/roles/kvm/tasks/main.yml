@@ -17,6 +17,13 @@
    with_items:
        - 'lsmod |grep kvm |grep -w vfio_pci'
        - 'virt-host-validate |grep -i virtualization | grep PASS'
+   ignore_errors: yes
+   register: vfio
+
+ - name: Load vfio module
+   shell: modprobe vfio_pci
+   when: vfio.results[1].rc == 1
+
 
  - name: Enable device passthrough for KVM update grup entries
    shell: sed -i "s/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX=\"intel_iommu=on\"/g" /etc/default/grub

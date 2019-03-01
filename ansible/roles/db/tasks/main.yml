@@ -3,8 +3,6 @@
    git:
        repo: "{{ C3PO_REPO }}"
        dest: "{{ C3PO_REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
-       accept_hostkey: yes
        version: "{{ C3PO_COMMIT_ID }}"
        update: no
 

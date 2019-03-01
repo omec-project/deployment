@@ -27,8 +27,6 @@
    git:
        repo: "{{ NGIC_REPO }}"
        dest: "{{ NGIC_REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
-       accept_hostkey: yes
        version: "{{ NGIC_COMMIT_ID }}"
        update: no
 

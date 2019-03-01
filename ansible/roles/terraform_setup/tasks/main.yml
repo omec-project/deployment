@@ -1,10 +1,4 @@
 ---
- - name: copy ssh key
-   copy:
-       src: "{{ REPO_KEY }}"
-       dest: "/home/c3po_ngic.key"
-       mode: 0600
-
  - name: Git clone for vEPC terraform scripts
    git:
        repo: "{{ TR_REPO }}"

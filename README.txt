@@ -26,16 +26,16 @@ Process and the Information that is required:
         3. Gather Inventory Information related to the physical hardware and 
             physical network
         4. Plan the IP network - IP addresses, subnets
-		5. Download vEPC package and run prerequisite for installation
-		6. Enter the server and network information in the input configuration file
-		7. Create virtual functions
-			7.1 Install control plane virtual functions
-			7.2 Install data plane virtual functions
-		8. Deployment of VMs using terraform
-		9. Complete manual validation of the deployed virtual environment and network
-		10. Manually install the software required for each VNF
-		11. Run an end-to-end traffic test to validate the functioning of the entire
-            vEPC
+	5. Download vEPC package
+	6. Enter the server and network information in the input configuration file
+	7. Execute run.sh script. 
+	   This script perform below action on deployment hosts. 
+	   7.1 Create virtual functions
+	   7.2 Create VM's using Terraform
+           7.3 Build and configure each VNF using Ansible. 
+	8. Complete manual validation of the deployed virtual environment and network
+        9. Run an end-to-end traffic test to validate the functioning of the entire
+            vEPC	
 
 1. Ready the physical hardware
 =========================
@@ -49,8 +49,8 @@ Process and the Information that is required:
         MEMORY GB = 128                          // Total RAM
         DISK GB = 500                            // Total HDD size
         NUMA_NODES= 2                            // Minimum # of NUMA nodes
-        NETWORK.ONBD = "2x10GbE"                 // Onboard NIC spec.
-        NETWORK.FV710 = "8x10GbE = 2x(4x10GbE)"  // Additional NIC controllers
+        NETWORK.ONBD = "2x1GbE"                 // Onboard NIC spec.
+        NETWORK.FV710 = "4x10GbE = 1x(4x10GbE)"  // Additional NIC controllers
 
     Host Type 2 houses the NGIC VNFs, a.k.a the "data" frame VNFs. Its minimum
 configuration is:
@@ -61,9 +61,8 @@ configuration is:
         MEMORY GB = 128                          // Total RAM
         DISK GB = 500                            // Total HDD size
         NUMA_NODES = 2                           // Minimum # of NUMA nodes
-        NETWORK.ONBD = "2x10GbE"                 // Onboard NIC spec.
-        NETWORK.FV710 = "20x10GbE = 5x(4x10GbE)" // Additional NIC controllers
-		[Review]: Why 20 NIC ports for data frame? Is this minimum required?
+        NETWORK.ONBD = "2x1GbE"                 // Onboard NIC spec.
+        NETWORK.FV710 = "8x10GbE = 2x(4x10GbE)" // Additional NIC controllers
 
     The hardware installation team **MUST** ensure that the hardware installed 
 meets the above minimum requirements.
@@ -77,16 +76,70 @@ meets the above minimum requirements.
 	https://www.ubuntu.com/download/alternative-downloads 
 	
 	3. User account on the server with root privileges.
+
+        4. Ubuntu account must be present on each servers with ssh-keyless connection 
+ between remote host to deployment hosts ( control plane and data plane ). 
+ Also need ssh-keyless connection between data plane host and SGX system. 
+
+        5. Remote host Dependancy: 
+        Installation of Ansible ( Version 2.6 above ) and dependancy. 
+		
+	For latest version of Ansible: 
+        -----------------------------
+	Manual : 
+	> apt-add-repository ppa:ansible/ansible
+	> apt-get update
+	> apt-get install ansible
+	> apt-get install python2.7 python-pip 
+        > pip install ipaddress pyyaml
+		
+	Automate: 
+	> cd /opt/deployment/setupremote
+	>./prerequisite.sh
 	
-	4 KVM should be configured and installed on the server class machine.
-	Following commands will help install the KVM packages.
-	>apt-get update
-	>apt-get install qemu-kvm libvirt-bin virtinst bridge-utils cpu-checker 
-	>apt-get install libguestfs-tools virt-manager libvirt-dev
-	
-	5 Add system user to the libvirtd group
-	>adduser <user> libvirtd
-	
+	For specific version : 
+	----------------------
+	pip install ansible==<version_id> 
+
+        6. KVM should be configured and installed on the each target hosts.
+ 	Manual: 
+        Following commands will help install the KVM packages.
+				
+	6.1 Edit grub file 
+	> vim /etc/default/grub
+        After:					
+         GRUB_CMDLINE_LINUX=""					
+        Add:					
+          GRUB_CMDLINE_LINUX="intel_iommu=on"					
+		
+        6.2 reboot server for grub config to take effect		
+        > update-grub					
+        > reboot 
+    
+        6.3 To check VT-D is enabled from OS end: 	
+	    > dmesg | grep -i dmar					
+        E.g.:					
+        Note:					
+        // Virtualization enaled in BIOS:					
+        DMAR: IOMMU enabled					
+       // VT-D enables in BIOS					
+       DMAR: Intel(R) Virtualization Technology for Directed I/O					
+
+       Automate: 
+	   6.4 Install the KVM packages
+        >apt-get update
+        >apt-get install qemu-kvm libvirt-bin virtinst bridge-utils cpu-checker
+        >apt-get install libguestfs-tools virt-manager libvirt-dev
+		>adduser root libvirtd
+
+       6.5 To check if kvm is loaded:				
+        > lsmod | grep kvm				
+       E.g.:				
+       root@ilepc1:#  lsmod | grep -i kvm				
+       kvm_intel             172032  25				
+       kvm                   544768  1 kvm_intel				
+       irqbypass              16384  16 kvm,vfio_pci	
+
 	
 
 2. Connect the physical network
@@ -141,26 +194,19 @@ network
 Note : Following steps needs to be repeated control and data hosts i.e. 
 HOST_TYPE1 and HOST_TYPE2.
 
-Make sure network access to "ilpm.intel-research.net" server is available.
-Make sure user account for package repository is created.
 Download the package using following commands:
  >cd /opt/
- >git clone https://<username>@ilpm.intel-research.net/bitbucket/scm/vccbbw/terraform_ngic_deployment.git
+ >git clone https://github.com/omec-project/deployment.git
 
- Above command will download package under folder /opt/terraform_ngic_deployment
+ Above command will download package under folder /opt/deployment
 
-Go to folder /opt/terraform_ngic_deployment, and run pre-requisites checking script.
- >cd /opt/terraform_ngic_deployment
- >./prerequisite.sh
- 
- Above script will check and install all the packages required to run terraform.
  
 6. Enter the server and network information in the input configuration file
 =============================
 Note : Following steps needs to be repeated control and data hosts i.e. 
 HOST_TYPE1 and HOST_TYPE2.
 
- Under the /opt/terraform_ngic_deployment/terraform folder edit the 
+ Under the /opt/deployment folder edit the 
 "c3po_ngic_input.cfg", and fill in the sections mentioned below with the 
 appropriate configuration values.
  Sample configurations values are already defined in the "c3po_ngic_input.cfg".
@@ -186,62 +232,15 @@ per your network and system configurations.
  [PGWU]
  [CTF]
 
-7. Create virtual functions
+
+7. Deployment of VMs using terraform
 =============================
- 7.1 Install control plane virtual functions
- 
- Go to control plane host(HOST_TYPE1).
- 
- NOTE: The installer expects at least two 10GB NICs to be up
- (link established/detected/up) for control plane.
- Installer will fail to create the virtual functions if two 10GB NICs are not
- found.
- To install control plane functions(e.g. HOST_TYPE1 above) execute following
- script with argument "cp".
- 
- Note: Below command will print the details and ask for confirmation.
- 
- >cd /opt/terraform_ngic_deployment/terraform
- >./generate_device.sh cp
+ Note : Following steps from remote deployment host.
 
- Virtual functions for the following would be installed for the control-plane.  
- HSS
- DB
- MME
- SGWC
- PGWC
- FPC
- 
- Validate the virtual functions created using command(TBD)
- >./listvfs_by_pf.sh
- 
- 7.2 Install data plane virtual functions
- 
- Go to data plane host(HOST_TYPE2).
- 
- For data plane functions, installer expects at least three 10GB NIC's.
- To install data plane functions(e.g. HOST_TYPE2 above) execute following
- script with argument "dp".
-
- Note: Below command will print the details and ask for confirmation.
-
- >cd /opt/terraform_ngic_deployment/terraform
- >./generate_device.sh dp 
- 
- Virtual functions for the following would be installed for data-plane.
- SGWU
- PGWU
-
-8. Deployment of VMs using terraform
-=============================
- Note : Following steps needs to be repeated on control and data hosts i.e. 
-HOST_TYPE1 and HOST_TYPE2.
-
- >cd /opt/terraform_ngic_deployment/terraform
- >terraform init
- >./deploy.sh
+ >cd /opt/deployment/setupremote
+ >./run.sh
   
-9. Complete manual validation of the deployed virtual environment and network
+8. Complete manual validation of the deployed virtual environment and network
 =============================
  Note : Following steps needs to be repeated on control and data hosts i.e. 
 HOST_TYPE1 and HOST_TYPE2.
@@ -249,26 +248,18 @@ HOST_TYPE1 and HOST_TYPE2.
  Check created VMs using command:
  >virsh list
  
- To test network connectivity among installed VMs, use the following command
- For data plane host(HOST_TYPE2), script will validate the presence of 2 
- virtual NIC's enabled with DPDK driver for SGWU and PGWU.
- >cd /opt/terraform_ngic_deployment
- >python check_connectivity.py
  
  For ssh to any particular VM, use the following command.
- >./sshbm ubuntu <hostname>
+ >./sshvm.sh ubuntu <hostname>
  <hostname> is name of VM displayed in "virsh list" command output.
 
 
  To get the IP address of the deployed VM, use following commands.
- >cd /opt/terraform_ngic_deployment/terraform
+ >cd /opt/deployment/scripts
  >get_vm_ip.sh shell <hostname printer in virsh list>
  
-10. Manually install the software required for each VNF
-=============================
-[review] - This step should be obsolete after packaging.
 
-11. Run an end-to-end traffic test to validate the functioning of the entire
+9. Run an end-to-end traffic test to validate the functioning of the entire
 vEPC
 =============================
  
