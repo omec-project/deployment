@@ -5,43 +5,57 @@
      temp_var: "{{ ansible_interfaces|sort }}"
  - set_fact:
      S1MME_DEV: "ansible_{{ temp_var[3] }}"
+ 
+ - name: Installing Packages 
+   apt: 
+      name: "{{ packages }}"
+   vars: 
+      packages: 
+         - git
+         - build-essential
+         - cmake
+         - libuv-dev
+         - libgcrypt-dev
+         - libidn11-dev
+         - bison
+         - libsctp-dev
+         - flex
+         - libgnutls-dev
+         - libssl-dev
 
  - name: Git clone for C3PO
    git:
-       repo: "{{ C3PO_REPO }}"
-       dest: "{{ C3PO_REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
-       accept_hostkey: yes
-       version: "{{ C3PO_COMMIT_ID }}"
-       update: no
-
- - name: copying build script
-   copy:
-      src: "{{ item }}"
-      dest: "{{ C3PO_REPO_DIR }}/"
-      owner: "root"
-      mode: "0755"
-   with_items: 
-      - ansible_c3po_install.sh
-      - Makefile
-
- - name: Run the installation script
-   shell: cd {{ C3PO_REPO_DIR }} && ./ansible_c3po_install.sh |tee {{ MME_LOG }}
-   args:
-      executable: /bin/bash
+      repo: "{{ MME_REPO }}"
+      dest: "{{ MME_REPO_DIR }}"
+      version: "{{ MME_COMMIT_ID }}"
+      update: no
  
- - name:  copying  mme configuration files
-   template:
-      src: "{{ item.src }}"
-      dest: "{{ item.dest }}"
-      backup: yes
-   with_items:
-      - { src: 'vbfd-conf.j2', dest: '/opt/c3po/mme/vbfd.conf' }
-      - { src: 'vbsm_cfg-txt.j2', dest: '/opt/c3po/mme/vbsm_cfg.txt' }
+ - name: Create modules directory 
+   file: 
+      path: "{{ MME_REPO_DIR }}/modules"
+      state: directory 
  
- - name: create cerificate
-   shell: "cd {{ C3PO_REPO_DIR }}/mme && ../hss/bin/make_certs.sh mme localdomain"
+ - name: git clone FreeDiameter repo 
+   git: 
+      repo: "{{ FREEDIAMETER_REPO }}" 
+      dest: "{{ FREEDIAMETER_DIR }}"
+      update: no 
+
+ - name: Create FreeDiameter build directory   
+   file:
+      path: "{{ FREEDIAMETER_DIR }}/build"
+      state: directory 
+ 
+ - name: Build FreeDiameter    
+   shell: "cmake -DDISABLE_SCTP:BOOL=ON .. && make -j && make install |tee /var/log/freediameter.log"
    args:
+      chdir: "{{ FREEDIAMETER_DIR }}/build"
+      executable: /bin/bash    
+
+ - name: Build Openmme
+   shell: make clean && make && make install |tee {{ MME_LOG }}
+   args:
+      chdir: "{{ MME_REPO_DIR }}"
       executable: /bin/bash
  
  - name: update S1MME device name 

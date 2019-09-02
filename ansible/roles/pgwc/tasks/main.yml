@@ -3,14 +3,12 @@
    git:
        repo: "{{ NGIC_REPO }}"
        dest: "{{ NGIC_REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
        version: "{{ NGIC_COMMIT_ID }}"
-       accept_hostkey: yes
        update: no
 
  - name: copying build script 
    copy: 
-      src: install_pgwc.sh
+      src: build.sh
       dest: "{{ NGIC_REPO_DIR }}/"
       owner: "root"
       mode: "0755" 
@@ -23,17 +21,17 @@
    with_items:
       - { src: 'cp_config.j2', dest: '/{{ NGIC_REPO_DIR }}/config/cp_config.cfg' }
       - { src: 'interface.j2', dest: '/{{ NGIC_REPO_DIR }}/config/interface.cfg' }
-      - { src: 'ng-core_cfg.j2', dest: '{{ NGIC_REPO_DIR }}/config/ng-core_cfg.mk' }
-      - { src: 'run_pgwc.j2', dest: '{{ SERVICE_SCRIPT_PATH }}'  }
-      - { src: 'pgwc.service.j2', dest: '/etc/systemd/system/pgwc.service' }
+#      - { src: 'ng-core_cfg.j2', dest: '{{ NGIC_REPO_DIR }}/config/ng-core_cfg.mk' }
+#      - { src: 'run_pgwc.j2', dest: '{{ SERVICE_SCRIPT_PATH }}'  }
+#      - { src: 'pgwc.service.j2', dest: '/etc/systemd/system/pgwc.service' }
 
- - name: systemctl daemon-reload and set permission pgwc service
-   shell: chmod +x {{ SERVICE_SCRIPT_PATH }} && systemctl daemon-reload 
-   args: 
-      executable: /bin/bash
+# - name: systemctl daemon-reload and set permission pgwc service
+#   shell: chmod +x {{ SERVICE_SCRIPT_PATH }} && systemctl daemon-reload 
+#   args: 
+#      executable: /bin/bash
 
  - name: Run the installation script
-   shell: cd {{ NGIC_REPO_DIR }} && ./install_pgwc.sh cp |tee {{ PGWC_LOG }} 
+   shell: cd {{ NGIC_REPO_DIR }} && ./build.sh cp |tee {{ PGWC_LOG }} 
    args:
       executable: /bin/bash
 

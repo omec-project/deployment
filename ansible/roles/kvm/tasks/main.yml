@@ -12,12 +12,23 @@
            - mkisofs
        state: present
 
+ - name: add ubuntu user to libvirt group
+   user: 
+       name: root
+       groups: libvirtd
+       append: yes
+
  - name: Check Virtualization (VT-D) enabled
    shell: "{{ item }}"
    with_items:
        - 'lsmod |grep kvm |grep -w vfio_pci'
        - 'virt-host-validate |grep -i virtualization | grep PASS'
+   ignore_errors: yes
+   register: vfio
+ 
+ - name: Load vfio module
+   shell: modprobe vfio_pci
+   when: vfio.results[0].rc == 1
 
- - name: Enable device passthrough for KVM update grup entries
-   shell: sed -i "s/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX=\"intel_iommu=on\"/g" /etc/default/grub
-
+# - name: Enable device passthrough for KVM update grup entries
+#   shell: sed -i "s/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX=\"intel_iommu=on\"/g" /etc/default/grub

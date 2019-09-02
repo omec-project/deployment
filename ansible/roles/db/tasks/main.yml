@@ -3,26 +3,31 @@
    git:
        repo: "{{ C3PO_REPO }}"
        dest: "{{ C3PO_REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
-       accept_hostkey: yes
        version: "{{ C3PO_COMMIT_ID }}"
        update: no
 
  - name: Add repo for java 
    apt_repository:
-     repo: ppa:webupd8team/java
+#     repo: ppa:webupd8team/java
+     repo: ppa:openjdk-r/ppa
      state: present
- - name: Accept Java 8 License
-   become: yes
-   debconf: 
-      name: 'oracle-java8-installer' 
-      question: 'shared/accepted-oracle-license-v1-1' 
-      value: 'true' 
-      vtype: 'select'
- - name: installing Orcle packages
+
+# - name: Accept Java 8 License
+#   become: yes
+#   debconf: 
+#      name: 'oracle-java8-installer' 
+#      question: 'shared/accepted-oracle-license-v1-1' 
+#      value: 'true' 
+#      vtype: 'select'
+
+# - name: installing Orcle packages
+#   apt: 
+#     name: oracle-java8-installer 
+#     state: present  
+ - name: Install Openjdk package
    apt: 
-     name: oracle-java8-installer 
-     state: present  
+     name: openjdk-8-jdk
+     update_cache: yes
 
  - name: Add repo for Cassandra
    apt_repository: 

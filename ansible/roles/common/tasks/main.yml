@@ -8,8 +8,3 @@
      name: git
      state: present
  
- - name: copy git ssh key 
-   copy: 
-       src: "/home/c3po_ngic.key"
-       dest: "/home/c3po_ngic.key"
-       mode: 0600

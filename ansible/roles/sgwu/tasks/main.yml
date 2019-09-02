@@ -27,8 +27,6 @@
    git:
        repo: "{{ NGIC_REPO }}"
        dest: "{{ NGIC_REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
-       accept_hostkey: yes
        version: "{{ NGIC_COMMIT_ID }}"
        update: no
 
@@ -55,8 +53,10 @@
 
  - name: copying ansible install sgwu build script
    template:
-      src: ansible_install_sgwu.j2
-      dest: "{{ NGIC_REPO_DIR }}/ansible_install_sgwu.sh"
+#      src: ansible_install_sgwu.j2
+#      dest: "{{ NGIC_REPO_DIR }}/ansible_install_sgwu.sh"
+      src: build.j2
+      dest: "{{ NGIC_REPO_DIR }}/build.sh"
       owner: "root"
       mode: "0755"
  
@@ -68,16 +68,17 @@
    with_items:
       - { src: 'dp_config.j2', dest: '/{{ NGIC_REPO_DIR }}/config/dp_config.cfg' }
       - { src: 'interface.j2', dest: '/{{ NGIC_REPO_DIR }}/config/interface.cfg' }
-      - { src: 'ng-core_cfg.j2', dest: '{{ NGIC_REPO_DIR }}/config/ng-core_cfg.mk' }
-      - { src: 'Makefile1.j2', dest: '{{ NGIC_REPO_DIR }}/dp/Makefile' }
+#      - { src: 'ng-core_cfg.j2', dest: '{{ NGIC_REPO_DIR }}/config/ng-core_cfg.mk' }
+#      - { src: 'Makefile1.j2', dest: '{{ NGIC_REPO_DIR }}/dp/Makefile' }
 
  - name: Run the installation script
-   shell: cd {{ NGIC_REPO_DIR }} && ./ansible_install_sgwu.sh dp |tee {{ SGWU_LOG }}
+#   shell: cd {{ NGIC_REPO_DIR }} && ./ansible_install_sgwu.sh dp |tee {{ SGWU_LOG }}
+   shell: cd {{ NGIC_REPO_DIR }} && ./build.sh dp |tee {{ SGWU_LOG }}
    args:
       executable: /bin/bash
  
  - name: DPDK Binding for S1U Interface  
-   shell: python {{ NGIC_REPO_DIR }}/dpdk/usertools/dpdk-devbind.py -b igb_uio {{ S1U_PCIID }}
+   shell: python {{ NGIC_REPO_DIR }}/dpdk/usertools/dpdk-devbind.py -b igb_uio {{ S1U_PCIID }} {{ S5S8_SGWU_PCIID }}
    register: result
  - debug: 
       var: result

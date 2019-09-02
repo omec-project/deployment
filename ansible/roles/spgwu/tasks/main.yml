@@ -20,8 +20,6 @@
    git:
        repo: "{{ NGIC_REPO }}"
        dest: "{{ NGIC_REPO_DIR }}"
-       key_file: "/home/c3po_ngic.key"
-       accept_hostkey: yes
        version: "{{ NGIC_COMMIT_ID }}"
        update: no
 
@@ -48,8 +46,8 @@
 
  - name: copying ansible install spgwu build script
    template:
-      src: ansible_install_spgwu.j2
-      dest: "{{ NGIC_REPO_DIR }}/ansible_install_spgwu.sh"
+      src: build.j2
+      dest: "{{ NGIC_REPO_DIR }}/build.sh"
       owner: "root"
       mode: "0755"
 
@@ -61,11 +59,11 @@
    with_items:
       - { src: 'dp_config.j2', dest: '/{{ NGIC_REPO_DIR }}/config/dp_config.cfg' }
       - { src: 'interface.j2', dest: '/{{ NGIC_REPO_DIR }}/config/interface.cfg' }
-      - { src: 'ng-core_cfg.j2', dest: '{{ NGIC_REPO_DIR }}/config/ng-core_cfg.mk' }
-      - { src: 'Makefile1.j2', dest: '{{ NGIC_REPO_DIR }}/dp/Makefile' }
+#      - { src: 'ng-core_cfg.j2', dest: '{{ NGIC_REPO_DIR }}/config/ng-core_cfg.mk' }
+#      - { src: 'Makefile1.j2', dest: '{{ NGIC_REPO_DIR }}/dp/Makefile' }
 
  - name: Run the installation script
-   shell: cd {{ NGIC_REPO_DIR }} && ./ansible_install_spgwu.sh dp |tee {{ SPGWU_LOG }}
+   shell: cd {{ NGIC_REPO_DIR }} && ./build.sh dp |tee {{ SPGWU_LOG }}
    args:
       executable: /bin/bash
  
