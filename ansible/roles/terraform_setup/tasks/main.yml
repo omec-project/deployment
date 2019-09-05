@@ -3,7 +3,7 @@
    git:
        repo: "{{ TR_REPO }}"
        dest: "{{ TR_REPO_DIR }}"
-       version: fixes
+       version: master
        update: no
 
  - name: Copy input.cfg

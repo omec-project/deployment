@@ -4,7 +4,7 @@
  MME_REPO: "https://github.com/omec-project/openmme.git"
  FREEDIAMETER_REPO: "https://github.com/omec-project/freediameter.git"
 # ODL_REPO: ""
- TR_REPO: "https://github.com/wanare-2017/deployment.git"
+ TR_REPO: "https://github.com/omec-project/deployment.git"
  SGX_REPO: "https://github.com/omec-project/c3po.git"
 
  C3PO_REPO_DIR: "/opt/c3po"
