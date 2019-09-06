@@ -30,14 +30,14 @@ diagram = """\
    |   |             |                   SPGWC        	       |    |  |
    |   |             |                                         |    |  |
    |   |             +-----------------------------------------+    |  |
-   |   |                    |         +----------+                  |  |
-   |   |                    +FPCNB----|   FPC    |                  |  |
-   |   |                              |          |                  |  |
-   |   |                    +FPCSB----+----------+                  |  |
-   |   |                    |                                       |  |
+   |   |                     |                                      |  |
+   |   |                     |                                      |  |
+   |   |                     |                                      |  |
+   |   |                     |                                      |  |
+   |   |                     |                                      |  |
    |   |             +-----------------------------------------+    |  |
    |   +------------ |                                         |----+  |
-   +----S1U----------|                   SPGWU                |--SGI--+
+   +----S1U----------|                   SPGWU                 |--SGI--+
                      +-----------------------------------------+
 """
 status=""
@@ -220,7 +220,7 @@ class Fun(object):
                f = os.popen(self.created_cmd)
                create_status= f.read().strip('\n')
                if create_status:
-                  if self.vm == 'MME' or self.vm == 'DB' or self.vm == 'FPC':
+                  if self.vm == 'MME' or self.vm == 'DB':
                      diagram = nth_repl(diagram,self.vm, '\033[40;33m{}\033[m'.format(self.vm),2)
                   else:
                      diagram = nth_repl(diagram,self.vm, '\033[40;33m{}\033[m'.format(self.vm),1)
@@ -230,7 +230,7 @@ class Fun(object):
                f = os.popen(self.configured_cmd)
                configured_status=f.read().strip('\n')
                if configured_status:
-                  if self.vm == 'MME' or self.vm == 'DB' or self.vm == 'FPC':
+                  if self.vm == 'MME' or self.vm == 'DB':
                      diagram = nth_repl(diagram,self.vm, '\033[40;32m{}\033[m'.format(self.vm),2)
                   else:
                     diagram = nth_repl(diagram,self.vm, '\033[40;32m{}\033[m'.format(self.vm),1)
