@@ -17,7 +17,7 @@
       - Makefile
 
  - name: Run the installation script
-   shell: cd {{ C3PO_REPO_DIR }} && ./ansible_c3po_install.sh |tee {{ HSS_LOG }}
+   shell: cd {{ C3PO_REPO_DIR }} && CPUS=4 ./install_builddeps.sh |tee {{ HSS_LOG }}
    args:
       executable: /bin/bash
  
